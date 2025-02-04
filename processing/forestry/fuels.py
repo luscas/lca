@@ -1,24 +1,6 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
-from st_material_table import st_material_table
-
-st.set_page_config(
-    layout="wide",
-)
-
-
-def get_emission_factor(factor_name: str, factor_column: str):
-    """
-    Obtém um fator de emissão com base no nome e tipo.
-    """
-    factors = pd.read_excel("data/lca/emission_factors.xlsx")
-    factor = factors[factors["name"] == factor_name]
-
-    if factor.empty and factor_column in factor.columns:
-        raise ValueError(f"Fator de emissão não encontrado para {factor_name}")
-
-    return factor[factor_column].values[0]
 
 
 class ForestryFuels:
@@ -489,161 +471,13 @@ class ForestryFuels:
         self.get_total_fossil_emissions_tco2e()
         self.get_total_biogenic_emissions_tco2e()
 
-        st.toast("Cálculo de emissões de combustíveis concluído com sucesso!")
+        # st.toast("Cálculo de emissões de combustíveis concluído com sucesso!")
 
         return self.df
 
 
 def test_forestry_fuels():
-    try:
-        st.title("Florestal (Combustíveis)")
+    df = pd.read_excel("data/lca/mock/forestry_fuels.xlsx")
+    forestry_fuels = ForestryFuels(df)
 
-        uploaded_file = st.file_uploader("", type=["xlsx"], key="upload_fuels")
-
-        if uploaded_file is not None and uploaded_file.name.endswith(".xlsx"):
-            df = pd.read_excel(uploaded_file)
-            forestry_fuels = ForestryFuels(df)
-
-            st.dataframe(forestry_fuels.preparation())
-    except FileNotFoundError as e:
-        print(f"Erro ao carregar o arquivo de dados: {e}")
-
-
-class ForestryFertilizers:
-    """
-    A: Unidade Florestal
-    B: Fertilizante
-    C: Fertilizante Nitrogenado ou Ureia
-    D: Teor de Nitrogênio (%)
-    E: Calcário Calcítico ou Dolomítico
-    F: Teor de CaO (%)
-    G: Teor de MgO (%)
-    H: Quantidade utilizada
-    I: Unidade
-    J: Classificação
-    K: Rastreabilidade
-    """
-
-    def __init__(self, df: pd.DataFrame):
-        self.df = df
-        self.factors_fertilizers = pd.read_excel("data/lca/factors/fertilizers.xlsx")
-        self.gwp_kyoto = pd.read_excel("data/lca/gwp_kyoto.xlsx")
-
-    def process(self):
-        self.df["Quantidade para cálculo (kg)"] = self.df["Quantidade utilizada"] * 1000
-
-        self.df["Quantidade de equivalência em carbonato de cálcio aplicada (kg)"] = (
-            self.df.apply(
-                lambda row: (
-                    (
-                        row["Teor de CaO (%)"]
-                        * self.factors_fertilizers.iloc[14]["value"]
-                    )
-                    + (
-                        row["Teor de MgO (%)"]
-                        * self.factors_fertilizers.iloc[15]["value"]
-                    )
-                )
-                * row["Quantidade para cálculo (kg)"],
-                axis=1,
-            )
-        )
-
-        self.df["Quantidade de N aplicada (kg)"] = self.df.apply(
-            lambda row: row["Quantidade para cálculo (kg)"]
-            * row["Teor de Nitrogênio (%)"],
-            axis=1,
-        )
-
-        self.df["Emissões kgCO2"] = self.df.apply(
-            lambda row: (
-                row["Quantidade de equivalência em carbonato de cálcio aplicada (kg)"]
-                * self.factors_fertilizers.iloc[12]["value"]
-                if row["Calcário Calcítico ou Dolomítico"] == "Calcítico"
-                else (
-                    row[
-                        "Quantidade de equivalência em carbonato de cálcio aplicada (kg)"
-                    ]
-                    * self.factors_fertilizers.iloc[13]["value"]
-                    if row["Calcário Calcítico ou Dolomítico"] == "Dolomítico"
-                    else 0
-                )
-            ),
-            axis=1,
-        )
-
-        self.df["Emissões kgN2O"] = self.df.apply(
-            lambda row: (
-                row["Quantidade de N aplicada (kg)"]
-                * self.factors_fertilizers.iloc[6]["value"]
-            ),
-            axis=1,
-        )
-
-        self.df["Emissões Uso tCO2e"] = self.df.apply(
-            lambda row: np.divide(
-                row["Emissões kgCO2"]
-                + (row["Emissões kgN2O"] * self.gwp_kyoto.iloc[4]["ar6"]),
-                1000,
-            ),
-            axis=1,
-        )
-
-        self.df["Emissões Fósseis Produção tCO2e"] = self.df.apply(
-            lambda row: np.divide(
-                row["Quantidade para cálculo (kg)"]
-                * get_emission_factor(row["Nome no Estudo"], "fossil_emission_factor"),
-                1000,
-            ),
-            axis=1,
-        )
-
-        self.df["Emissões Biogênicas Produção tCO2e"] = self.df.apply(
-            lambda row: np.divide(
-                row["Quantidade para cálculo (kg)"]
-                * get_emission_factor(
-                    row["Nome no Estudo"], "biogenic_emission_factor"
-                ),
-                1000,
-            ),
-            axis=1,
-        )
-
-        self.df["Emissões LUC Produção tCO2e"] = self.df.apply(
-            lambda row: np.divide(
-                row["Quantidade para cálculo (kg)"]
-                * get_emission_factor(row["Nome no Estudo"], "luc_emission_factor"),
-                1000,
-            ),
-            axis=1,
-        )
-
-        self.df["Emissões totais tCO2e"] = self.df.apply(
-            lambda row: np.sum(
-                row["Emissões Fósseis Produção tCO2e"] + row["Emissões Uso tCO2e"]
-            ),
-            axis=1,
-        )
-
-        st.toast("Cálculo de emissões de fertilizantes concluído com sucesso!")
-
-        return self.df
-
-
-def test_forestry_fertilizers():
-    try:
-        st.title("Florestal (Fertilizantes)")
-
-        uploaded_file = st.file_uploader("", type=["xlsx"], key="upload_fertilizers")
-
-        if uploaded_file is not None and uploaded_file.name.endswith(".xlsx"):
-            df = pd.read_excel(uploaded_file)
-            forestry_fertilizers = ForestryFertilizers(df)
-
-            st.dataframe(forestry_fertilizers.process())
-    except FileNotFoundError as e:
-        print(f"Erro ao carregar o arquivo de dados: {e}")
-
-
-test_forestry_fuels()
-test_forestry_fertilizers()
+    st.dataframe(forestry_fuels.preparation(), hide_index=True)
