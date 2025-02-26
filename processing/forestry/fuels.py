@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
+from streamlit_react_flow import react_flow
 import streamlit as st
+import json
+import graphviz
 
 
 class ForestryFuels:
@@ -477,7 +480,9 @@ class ForestryFuels:
 
 
 def test_forestry_fuels():
-    df = pd.read_excel("data/lca/mock/forestry_fuels.xlsx")
-    forestry_fuels = ForestryFuels(df)
-
-    st.dataframe(forestry_fuels.preparation(), hide_index=True)
+    file = st.file_uploader("Escolha um arquivo", type=["xlsx"], key="fuels")
+    if file is not None:
+        df = pd.read_excel(file)
+        forestry_fuels = ForestryFuels(df)
+        st.dataframe(forestry_fuels.preparation(), hide_index=True)
+        st.toast("Processamento concluído com sucesso!")

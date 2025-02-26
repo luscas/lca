@@ -70,7 +70,12 @@ def test_industrial():
         else:
             return [""] * len(row)
 
-    industrial = Industrial(pd.read_excel("data/lca/mock/industrial.xlsx")).process()
+    file = st.file_uploader("Escolha um arquivo", type=["xlsx"], key="industrial")
+
+    if file is None:
+        return
+
+    industrial = Industrial(pd.read_excel(file)).process()
 
     st.dataframe(
         industrial.style.apply(highlight_empty_factor, axis=1), hide_index=True

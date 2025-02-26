@@ -87,8 +87,16 @@ def test_quartz_mining():
         else:
             return [""] * len(row)
 
+    file = st.file_uploader(
+        "Escolha um arquivo",
+        type=["xlsx"],
+        key="quartz_mining"
+    )
+    if file is None:
+        return
+
     quartz_mining = QuartzMining(
-        pd.read_excel("data/lca/mock/quartz_mining.xlsx")
+        pd.read_excel(file)
     ).process()
 
     st.dataframe(

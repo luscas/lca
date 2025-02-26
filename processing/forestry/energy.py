@@ -125,7 +125,11 @@ class ForestryEnergy:
 
 
 def test_forestry_energy():
-    df = pd.read_excel("data/lca/mock/forestry_energy.xlsx")
+    file = st.file_uploader("Escolha um arquivo", type=["xlsx"], key="energy")
+    if file is None:
+        return
+
+    df = pd.read_excel(file)
     forestry_energy = ForestryEnergy(df)
 
     st.dataframe(forestry_energy.process(), hide_index=True)

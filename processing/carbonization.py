@@ -52,8 +52,12 @@ class Carbonization:
 
 
 def test_carbonization():
+    file = st.file_uploader("Escolha um arquivo", type=["xlsx"], key="carbonization")
+    if file is None:
+        return
+
     carbonization = Carbonization(
-        pd.read_excel("data/lca/mock/carbonization.xlsx")
+        pd.read_excel(file)
     ).process()
 
     st.dataframe(carbonization, hide_index=True)

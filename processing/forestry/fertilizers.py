@@ -127,7 +127,10 @@ class ForestryFertilizers:
 
 
 def test_forestry_fertilizers():
-    df = pd.read_excel("data/lca/mock/forestry_fertilizers.xlsx")
-    forestry_fertilizers = ForestryFertilizers(df)
+    file = st.file_uploader("Escolha um arquivo", type=["xlsx"], key="fertilizers")
+    if file is not None:
+        df = pd.read_excel(file)
+        forestry_fertilizers = ForestryFertilizers(df)
 
-    st.dataframe(forestry_fertilizers.process(), hide_index=True)
+        st.dataframe(forestry_fertilizers.process(), hide_index=True)
+        st.toast("Processamento concluído com sucesso!")
