@@ -162,5 +162,22 @@ def test_forestry_fertilizers():
         df = pd.read_excel(file)
         forestry_fertilizers = ForestryFertilizers(df)
 
-        st.dataframe(forestry_fertilizers.process(), hide_index=True)
-        st.toast("Processamento concluído com sucesso!")
+        processed = forestry_fertilizers.process()
+        result = pd.DataFrame()
+
+        if processed is not None:
+            result["Emissões totais tCO2e"] = processed["Emissões totais tCO2e"].sum()
+            result["Emissões Fósseis Produção tCO2e"] = processed[
+                "Emissões Fósseis Produção tCO2e"
+            ].sum()
+            result["Emissões Biogênicas Produção tCO2e"] = processed[
+                "Emissões Biogênicas Produção tCO2e"
+            ].sum()
+            result["Emissões LUC Produção tCO2e"] = processed["Emissões LUC Produção tCO2e"].sum()
+            result["Emissões Uso tCO2e"] = processed["Emissões Uso tCO2e"].sum()
+            result["Emissões kgCO2"] = processed["Emissões kgCO2"].sum()
+            result["Emissões kgN2O"] = processed["Emissões kgN2O"].sum()
+
+            st.dataframe(processed, hide_index=True)
+            st.dataframe(result)
+            st.toast("Processamento concluído com sucesso!")
