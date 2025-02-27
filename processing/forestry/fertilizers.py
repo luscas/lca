@@ -14,76 +14,106 @@ class ForestryFertilizers:
 
     def calculate_base_quantity(self):
         """Convert base quantity to kg"""
-        return self.df["Quantidade utilizada"] * 1000
+        try:
+            return np.multiply(self.df["Quantidade utilizada"], 1000)
+        except:
+            return None
 
     def calculate_calcium_carbonate_equivalent(self, row):
         """Calculate calcium carbonate equivalent applied"""
-        cao_factor = row["Teor de CaO (%)"] * self.factors_fertilizers.iloc[14]["value"]
-        mgo_factor = row["Teor de MgO (%)"] * self.factors_fertilizers.iloc[15]["value"]
-        return (cao_factor + mgo_factor) * row["Quantidade para cálculo (kg)"]
+        try:
+            cao_factor = row["Teor de CaO (%)"] * self.factors_fertilizers.iloc[14]["value"]
+            mgo_factor = row["Teor de MgO (%)"] * self.factors_fertilizers.iloc[15]["value"]
+            return (cao_factor + mgo_factor) * row["Quantidade para cálculo (kg)"]
+        except:
+            return None
 
     def calculate_nitrogen_applied(self, row):
         """Calculate applied nitrogen quantity"""
-        return row["Quantidade para cálculo (kg)"] * row["Teor de Nitrogênio (%)"]
+        try:
+            return row["Quantidade para cálculo (kg)"] * row["Teor de Nitrogênio (%)"]
+        except:
+            return None
 
     def calculate_co2_emissions(self, row):
         """Calculate CO2 emissions based on limestone type"""
-        if row["Calcário Calcítico ou Dolomítico"] == "Calcítico":
-            return (
-                row["Quantidade de equivalência em carbonato de cálcio aplicada (kg)"]
-                * self.factors_fertilizers.iloc[12]["value"]
-            )
-        elif row["Calcário Calcítico ou Dolomítico"] == "Dolomítico":
-            return (
-                row["Quantidade de equivalência em carbonato de cálcio aplicada (kg)"]
-                * self.factors_fertilizers.iloc[13]["value"]
-            )
-        return 0
+        try:
+            if row["Calcário Calcítico ou Dolomítico"] == "Calcítico":
+                return (
+                    row["Quantidade de equivalência em carbonato de cálcio aplicada (kg)"]
+                    * self.factors_fertilizers.iloc[12]["value"]
+                )
+            elif row["Calcário Calcítico ou Dolomítico"] == "Dolomítico":
+                return (
+                    row["Quantidade de equivalência em carbonato de cálcio aplicada (kg)"]
+                    * self.factors_fertilizers.iloc[13]["value"]
+                )
+            return 0
+        except:
+            return None
 
     def calculate_n2o_emissions(self, row):
         """Calculate N2O emissions"""
-        return (
-            row["Quantidade de N aplicada (kg)"]
-            * self.factors_fertilizers.iloc[6]["value"]
-        )
+        try:
+            return (
+                row["Quantidade de N aplicada (kg)"]
+                * self.factors_fertilizers.iloc[6]["value"]
+            )
+        except:
+            return None
 
     def calculate_use_emissions(self, row):
         """Calculate use emissions in tCO2e"""
-        return np.divide(
-            row["Emissões kgCO2"]
-            + (row["Emissões kgN2O"] * self.gwp_kyoto.iloc[4]["ar6"]),
-            1000,
-        )
+        try:
+            return np.divide(
+                row["Emissões kgCO2"]
+                + (row["Emissões kgN2O"] * self.gwp_kyoto.iloc[4]["ar6"]),
+                1000,
+            )
+        except:
+            return None
 
     def calculate_fossil_production_emissions(self, row):
         """Calculate fossil production emissions"""
-        return np.divide(
-            row["Quantidade para cálculo (kg)"]
-            * get_emission_factor(row["Nome no Estudo"], "fossil_emission_factor"),
-            1000,
-        )
+        try:
+            return np.divide(
+                row["Quantidade para cálculo (kg)"]
+                * get_emission_factor(row["Nome no Estudo"], "fossil_emission_factor"),
+                1000,
+            )
+        except:
+            return None
 
     def calculate_biogenic_production_emissions(self, row):
         """Calculate biogenic production emissions"""
-        return np.divide(
-            row["Quantidade para cálculo (kg)"]
-            * get_emission_factor(row["Nome no Estudo"], "biogenic_emission_factor"),
-            1000,
-        )
+        try:
+            return np.divide(
+                row["Quantidade para cálculo (kg)"]
+                * get_emission_factor(row["Nome no Estudo"], "biogenic_emission_factor"),
+                1000,
+            )
+        except:
+            return None
 
     def calculate_luc_production_emissions(self, row):
         """Calculate LUC production emissions"""
-        return np.divide(
-            row["Quantidade para cálculo (kg)"]
-            * get_emission_factor(row["Nome no Estudo"], "luc_emission_factor"),
-            1000,
-        )
+        try:
+            return np.divide(
+                row["Quantidade para cálculo (kg)"]
+                * get_emission_factor(row["Nome no Estudo"], "luc_emission_factor"),
+                1000,
+            )
+        except:
+            return None
 
     def calculate_total_emissions(self, row):
         """Calculate total emissions"""
-        return np.sum(
-            row["Emissões Fósseis Produção tCO2e"] + row["Emissões Uso tCO2e"]
-        )
+        try:
+            return np.sum(
+                row["Emissões Fósseis Produção tCO2e"] + row["Emissões Uso tCO2e"]
+            )
+        except:
+            return None
 
     def process(self):
         """Main processing method that orchestrates all calculations"""
