@@ -481,8 +481,28 @@ class ForestryFuels:
 
 def test_forestry_fuels():
     file = st.file_uploader("Escolha um arquivo", type=["xlsx"], key="fuels")
+
     if file is not None:
         df = pd.read_excel(file)
+
         forestry_fuels = ForestryFuels(df)
-        st.dataframe(forestry_fuels.preparation(), hide_index=True)
+        processed = forestry_fuels.preparation()
+
+        result = pd.DataFrame({
+            "Emissões CO2 (kgCO2)": [processed["Emissões CO2 (kgCO2)"].sum()],
+            "Emissões CO2 - biogênico (kgCO2)": [processed["Emissões CO2 - biogênico (kgCO2)"].sum()],
+            "Emissões CH4 (kgCH4)": [processed["Emissões CH4 (kgCH4)"].sum()],
+            "Emissões N2O (kgN2O)": [processed["Emissões N2O (kgN2O)"].sum()],
+            "Emissões Fósseis Combustão (tCO2e)": [processed["Emissões Fósseis Combustão (tCO2e)"].sum()],
+            "Emissões Biogênicas Combustão (tCO2e)": [processed["Emissões Biogênicas Combustão (tCO2e)"].sum()],
+            "Emissões CO2 LUC - Produção (tCO2)": [processed["Emissões CO2 LUC - Produção (tCO2)"].sum()],
+            "Emissões Fósseis Totais (tCO2e)": [processed["Emissões Fósseis Totais (tCO2e)"].sum()],
+            "Emissões Biogênicas Totais (tCO2e)": [processed["Emissões Biogênicas Totais (tCO2e)"].sum()],
+        })
+
+        st.dataframe(processed, hide_index=True)
+
+        st.title('Resultados')
+        st.dataframe(result, hide_index=True, use_container_width=True)
+
         st.toast("Processamento concluído com sucesso!")

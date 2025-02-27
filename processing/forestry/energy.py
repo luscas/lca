@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import pandas as pd
+import numpy as np
 import streamlit as st
 
 from utils.emission_factors import get_emission_factor
@@ -131,5 +132,31 @@ def test_forestry_energy():
 
     df = pd.read_excel(file)
     forestry_energy = ForestryEnergy(df)
+    processed = forestry_energy.process()
 
-    st.dataframe(forestry_energy.process(), hide_index=True)
+    result = pd.DataFrame({
+        "Consumo": [np.sum(
+            processed[
+                [
+                    "Consumo - Janeiro",
+                    "Consumo - Fevereiro",
+                    "Consumo - Março",
+                    "Consumo - Abril",
+                    "Consumo - Maio",
+                    "Consumo - Junho",
+                    "Consumo - Julho",
+                    "Consumo - Agosto",
+                    "Consumo - Setembro",
+                    "Consumo - Outubro",
+                    "Consumo - Novembro",
+                    "Consumo - Dezembro",
+                ]
+            ].sum(axis=1)
+        )],
+        "Emissões totais (tCO2e)": [processed["Emissões totais (tCO2e)"].sum()],
+    })
+
+    st.dataframe(processed, hide_index=True)
+
+    st.title('Resultados')
+    st.dataframe(result, hide_index=True, use_container_width=True)

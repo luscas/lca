@@ -60,4 +60,22 @@ def test_carbonization():
         pd.read_excel(file)
     ).process()
 
+    result = pd.DataFrame(
+        {
+            "Madeira": [carbonization["Madeira"].sum()],
+            "Emissões totais tCO2e": [carbonization["Emissões Biogênicas Totais (tCO2e)"].sum()],
+        }
+    )
+
+    result["Emissões de CH4 (tCO2e)"] = carbonization[
+        "Emissões de CH4 (tCO2e)"
+    ].sum()
+
+    result["Emissões CO2 - biogênico (kgCO2)"] = carbonization[
+        "Emissões CO2 - biogênico (kgCO2)"
+    ].sum()
+
     st.dataframe(carbonization, hide_index=True)
+
+    st.title("Resultados")
+    st.dataframe(result, hide_index=True, use_container_width=True)
