@@ -168,8 +168,6 @@ def test_forestry_fertilizers():
         })
 
         if processed is not None:
-           # result["Emissões totais tCO2e"] = processed["Emissões totais tCO2e"].sum()
-            print("resultadosss 111:", result)
             result["Emissões Fósseis Produção tCO2e"] = processed[
                 "Emissões Fósseis Produção tCO2e"
             ].sum()
@@ -182,6 +180,8 @@ def test_forestry_fertilizers():
             result["Emissões kgN2O"] = processed["Emissões kgN2O"].sum()
 
             st.dataframe(processed, hide_index=True)
-            st.dataframe(result)
-            print("resultadosss:", result)
+
+            st.title('Resultados')
+            st.dataframe(result, hide_index=True, use_container_width=True)
+
             st.toast("Processamento concluído com sucesso!")
