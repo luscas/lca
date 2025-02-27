@@ -159,14 +159,17 @@ class ForestryFertilizers:
 def test_forestry_fertilizers():
     file = st.file_uploader("Escolha um arquivo", type=["xlsx"], key="fertilizers")
     if file is not None:
-        df = pd.read_excel(file)
+        df = pd.read_excel(file,sheet_name=0)
         forestry_fertilizers = ForestryFertilizers(df)
 
         processed = forestry_fertilizers.process()
-        result = pd.DataFrame()
+        result = pd.DataFrame({
+            "Emissões totais tCO2e": [processed["Emissões totais tCO2e"].sum()]
+        })
 
         if processed is not None:
-            result["Emissões totais tCO2e"] = processed["Emissões totais tCO2e"].sum()
+           # result["Emissões totais tCO2e"] = processed["Emissões totais tCO2e"].sum()
+            print("resultadosss 111:", result)
             result["Emissões Fósseis Produção tCO2e"] = processed[
                 "Emissões Fósseis Produção tCO2e"
             ].sum()
@@ -180,4 +183,5 @@ def test_forestry_fertilizers():
 
             st.dataframe(processed, hide_index=True)
             st.dataframe(result)
+            print("resultadosss:", result)
             st.toast("Processamento concluído com sucesso!")
