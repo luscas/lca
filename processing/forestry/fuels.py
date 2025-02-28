@@ -16,6 +16,7 @@ class ForestryFuels:
         self.df = df
         self.densities = pd.read_excel("data/lca/densities.xlsx")
         self.emission_factors = pd.read_excel("data/lca/emission_factors.xlsx")
+        self.stationary_combustion_factors = pd.read_excel("data/lca/stationary_combustion.xlsx")
 
     def get_off_road_factors(self, fuel_type: str, column_name: str):
         """
@@ -34,17 +35,30 @@ class ForestryFuels:
             )
             return orf[orf["fuel_transportation"] == fuel_type][column_name].values[0]
         except (FileNotFoundError, KeyError, IndexError) as e:
-            print(f"Erro ao obter fatores para {fuel_type}: {e}")
+            print(f"[get_off_road_factors] Erro ao obter fatores para {fuel_type}: {e}")
             # np.nan
             return 0
 
     def get_emission_factors(self, name: str, column_name: str) -> float:
         try:
+            self.emission_factors["name"] = self.emission_factors["name"].str.lower()
+
             factor = self.emission_factors[self.emission_factors["name"] == name]
 
             return factor[column_name].values[0]
         except (FileNotFoundError, KeyError, IndexError) as e:
-            print(f"Erro ao obter fatores para {name}: {e}")
+            print(f"[get_emission_factors] Erro ao obter fatores para {name}: {e}")
+            return 0
+
+    def get_stationary_combustion_factors(self, name: str, column_name: str) -> float:
+        try:
+            self.stationary_combustion_factors["fuel"] = self.stationary_combustion_factors["fuel"].str.lower()
+
+            factor = self.stationary_combustion_factors[self.stationary_combustion_factors["fuel"] == name]
+
+            return factor[column_name].values[0]
+        except (FileNotFoundError, KeyError, IndexError) as e:
+            print(f"[get_stationary_combustion_factors] Erro ao obter fatores para {name}: {e}")
             return 0
 
     def get_density(self, name: str, column_name: str) -> float:
@@ -82,6 +96,10 @@ class ForestryFuels:
             return (
                 (consumption / 1000) * (1 - 0.1) * (co2_factor * energy_content) * 1000
             )
+        elif fuel == "acetileno":
+            factor = self.get_stationary_combustion_factors(fuel, "kgco2_kg")
+
+            return np.multiply(consumption, factor)
 
         return 0
 
