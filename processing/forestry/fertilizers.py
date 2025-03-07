@@ -2,21 +2,39 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-# ** Utils
-from utils.emission_factors import get_emission_factor
-
 
 class ForestryFertilizers:
     def __init__(self, df: pd.DataFrame):
         self.df = df
         self.factors_fertilizers = pd.read_excel("data/lca/factors/fertilizers.xlsx")
         self.gwp_kyoto = pd.read_excel("data/lca/gwp_kyoto.xlsx")
+        self.emission_factors = pd.read_excel("data/lca/emission_factors.xlsx")
+
+    def get_emission_factor(factor_name: str, factor_column: str):
+        """
+        Obtém um fator de emissão com base no nome e tipo.
+        """
+
+        factor_name = factor_name.lower()
+        self.emission_factors["name"] = self.emission_factors["name"].str.lower()
+
+        factor = self.emission_factors[self.emission_factors["name"] == factor_name]
+
+        if factor.empty and factor_column in factor.columns:
+            # raise ValueError(f"Fator de emissão não encontrado para {factor_name}")
+            print(f"Fator de emissão não encontrado para {factor_name}")
+            return None
+
+        return factor[factor_column].values[0]
 
     def calculate_base_quantity(self):
         """Convert base quantity to kg"""
         try:
             return np.multiply(self.df["Quantidade utilizada"], 1000)
-        except:
+        except Exception as e:
+            print("Erro ao calcular a quantidade base")
+            print(e)
+
             return None
 
     def calculate_calcium_carbonate_equivalent(self, row):
@@ -76,9 +94,13 @@ class ForestryFertilizers:
     def calculate_fossil_production_emissions(self, row):
         """Calculate fossil production emissions"""
         try:
+            emission_factor = self.get_emission_factor(row["Nome no Estudo"], "fossil_emission_factor")
+
+            print(emission_factor)
+
             return np.divide(
                 row["Quantidade para cálculo (kg)"]
-                * get_emission_factor(row["Nome no Estudo"], "fossil_emission_factor"),
+                * emission_factor,
                 1000,
             )
         except:
@@ -89,7 +111,7 @@ class ForestryFertilizers:
         try:
             return np.divide(
                 row["Quantidade para cálculo (kg)"]
-                * get_emission_factor(row["Nome no Estudo"], "biogenic_emission_factor"),
+                * self.get_emission_factor(row["Nome no Estudo"], "biogenic_emission_factor"),
                 1000,
             )
         except:
@@ -100,7 +122,7 @@ class ForestryFertilizers:
         try:
             return np.divide(
                 row["Quantidade para cálculo (kg)"]
-                * get_emission_factor(row["Nome no Estudo"], "luc_emission_factor"),
+                * self.get_emission_factor(row["Nome no Estudo"], "luc_emission_factor"),
                 1000,
             )
         except:
